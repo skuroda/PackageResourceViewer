@@ -12,7 +12,7 @@ class ListPackageFilesCommand(sublime_plugin.WindowCommand):
         if index == -1:
             return
         self.package = self.packages[index]
-        ignored_dirs = sublime.load_settings("PackageHelper.sublime-settings").get("ignored_directories", [])
+        ignored_dirs = sublime.load_settings("ListPackageFiles.sublime-settings").get("ignored_directories", [])
         self.files = list_package_files(self.package, ignored_dirs)
 
         self.show_quick_panel(self.files, self.package_file_callback)
