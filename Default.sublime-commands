@@ -1,0 +1,6 @@
+[
+	{
+        "caption": "List Package Files",
+        "command": "list_package_files"
+    }
+]
