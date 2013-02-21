@@ -4,14 +4,13 @@ import re
 from PackageResourceViewer.package_resources.package_resources import *
 
 VERSION = sublime.version()
-PACKAGES_PATH = sublime.packages_path()
 
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
         self.packages = get_packages_list()
         self.show_quick_panel(self.packages, self.package_list_callback)
-        self.settings = sublime.load_settings("ListPackageFiles.sublime-settings")
+        self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
 
     def package_list_callback(self, index):
         if index == -1:
@@ -26,7 +25,10 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         raise "Should be implemented by child class"
 
     def set_read_only(self, read_only):
-        sublime.set_timeout(lambda: self.window.active_view().set_read_only(read_only), 10)
+        sublime.set_timeout(lambda: self.window.active_view().set_read_only(read_only), 5)
+
+    def save_file(self):
+        sublime.set_timeout(lambda: self.window.active_view().run_command("save"), 5)
 
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
@@ -40,9 +42,9 @@ class ViewPackageFileCommand(PackageResourceViewerBase):
         if entry == "..":
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
-            self.window.run_command("open_file", {"file": "${packages}/" + package_file})
-            if self.package != "User" and self.settings.get("read_only_non_user", True):
-                self.set_read_only(True)
+            self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
+            self.set_read_only(True)
+
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
 
@@ -57,7 +59,10 @@ class EditPackageFileCommand(PackageResourceViewerBase):
         else:
             self.create_folder(os.path.join(sublime.packages_path(), self.package))
             self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
+
             self.set_read_only(False)
+            self.save_file()
+
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
 

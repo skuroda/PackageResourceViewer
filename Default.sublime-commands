@@ -1,6 +1,10 @@
 [
 	{
-        "caption": "List Package Files",
-        "command": "list_package_files"
+        "caption": "PackageResourceViewer: View Package Files",
+        "command": "view_package_file"
+    },
+	{
+        "caption": "PackageResourceViewer: Edit Package Files",
+        "command": "edit_package_file"
     }
 ]
