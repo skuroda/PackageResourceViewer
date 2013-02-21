@@ -27,10 +27,19 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
 
+    def open_file(self, package, resource):
+        content = get_package_resource(package, resource)
+        view = self.window.open_file(os.path.join(sublime.packages_path(), package, resource))
+        sublime.set_timeout(lambda: self.insert_text(content, view), 10)
+        return view
+
+    def insert_text(self, content, view):
+        if not view.is_loading():
+            view.run_command("insert_content", {"content": content})
+        else: 
+            sublime.set_timeout(lambda: self.insert_text(content, view), 10)
 
 class ViewPackageFileCommand(PackageResourceViewerBase):
-    view_package_file = False
-    view_package_file_list = []
     def package_file_callback(self, index):
         if index == -1:
             return
@@ -38,19 +47,21 @@ class ViewPackageFileCommand(PackageResourceViewerBase):
         if entry == "..":
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
-            self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
-
-            ViewPackageFileCommand.view_package_file = True
-            ViewPackageFileCommand.view_package_file_list.append(os.path.join(sublime.packages_path(), self.package, entry))
+            view = self.open_file(self.package, entry)
+            sublime.set_timeout(lambda: self.setup_view(view), 10)
 
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
+
+    def setup_view(self, view):
+        if not view.is_loading():
+            view.set_read_only(True)
+            view.set_scratch(True)
+        else: 
+            sublime.set_timeout(lambda: self.setup_view(content, view), 10)
 
 
 class EditPackageFileCommand(PackageResourceViewerBase):
-    edit_package_file = False
-    edit_package_file_list = []
-
     def package_file_callback(self, index):
         if index == -1:
             return
@@ -58,13 +69,13 @@ class EditPackageFileCommand(PackageResourceViewerBase):
         if entry == "..":
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
-            self.create_folder(os.path.join(sublime.packages_path(), self.package))
-            EditPackageFileCommand.edit_package_file = True
-            EditPackageFileCommand.edit_package_file_list.append(os.path.join(sublime.packages_path(), self.package, entry))
-            self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
-
+            package_path = os.path.join(sublime.packages_path(), self.package)
+            self.create_folder(package_path)
+            
+            view = self.open_file(os.path.join(package_path, entry))
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
+
 
     def create_folder(self, base):
         if not os.path.exists(base):
@@ -73,20 +84,7 @@ class EditPackageFileCommand(PackageResourceViewerBase):
                 self.create_folder(parent)
             os.mkdir(base)
 
-class EventListener(sublime_plugin.EventListener):
-    def on_load_async(self, view):
-        if EditPackageFileCommand.edit_package_file:
-            edit_package_file_list = EditPackageFileCommand.edit_package_file_list
-            if view.file_name() in edit_package_file_list:
-                view.run_command("save")
-                view.set_read_only(False)
-                edit_package_file_list.remove(view.file_name())                            
-                if len(edit_package_file_list) == 0:
-                    edit_package_file = False
-        elif ViewPackageFileCommand.view_package_file:
-            view_package_file_list = ViewPackageFileCommand.view_package_file_list
-            if view.file_name() in view_package_file_list:
-                view.set_read_only(True)
-                view_package_file_list.remove(view.file_name())                            
-                if len(edit_package_file_list) == 0:
-                    view_package_file = False
+
+class InsertContentCommand(sublime_plugin.TextCommand):
+    def run(self, edit, content):
+        self.view.insert(edit, 0, content)
