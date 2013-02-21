@@ -24,17 +24,13 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def package_file_callback(self, index):
         raise "Should be implemented by child class"
 
-    def set_read_only(self, read_only):
-        sublime.set_timeout(lambda: self.window.active_view().set_read_only(read_only), 5)
-
-    def save_file(self):
-        sublime.set_timeout(lambda: self.window.active_view().run_command("save"), 5)
-
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
 
 
 class ViewPackageFileCommand(PackageResourceViewerBase):
+    view_package_file = False
+    view_package_file_list = []
     def package_file_callback(self, index):
         if index == -1:
             return
@@ -43,13 +39,18 @@ class ViewPackageFileCommand(PackageResourceViewerBase):
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
             self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
-            self.set_read_only(True)
+
+            ViewPackageFileCommand.view_package_file = True
+            ViewPackageFileCommand.view_package_file_list.append(os.path.join(sublime.packages_path(), self.package, entry))
 
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
 
 
 class EditPackageFileCommand(PackageResourceViewerBase):
+    edit_package_file = False
+    edit_package_file_list = []
+
     def package_file_callback(self, index):
         if index == -1:
             return
@@ -58,10 +59,9 @@ class EditPackageFileCommand(PackageResourceViewerBase):
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
             self.create_folder(os.path.join(sublime.packages_path(), self.package))
+            EditPackageFileCommand.edit_package_file = True
+            EditPackageFileCommand.edit_package_file_list.append(os.path.join(sublime.packages_path(), self.package, entry))
             self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
-
-            self.set_read_only(False)
-            self.save_file()
 
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
@@ -72,3 +72,21 @@ class EditPackageFileCommand(PackageResourceViewerBase):
             if not os.path.exists(parent):
                 self.create_folder(parent)
             os.mkdir(base)
+
+class EventListener(sublime_plugin.EventListener):
+    def on_load_async(self, view):
+        if EditPackageFileCommand.edit_package_file:
+            edit_package_file_list = EditPackageFileCommand.edit_package_file_list
+            if view.file_name() in edit_package_file_list:
+                view.run_command("save")
+                view.set_read_only(False)
+                edit_package_file_list.remove(view.file_name())                            
+                if len(edit_package_file_list) == 0:
+                    edit_package_file = False
+        elif ViewPackageFileCommand.view_package_file:
+            view_package_file_list = ViewPackageFileCommand.view_package_file_list
+            if view.file_name() in view_package_file_list:
+                view.set_read_only(True)
+                view_package_file_list.remove(view.file_name())                            
+                if len(edit_package_file_list) == 0:
+                    view_package_file = False
