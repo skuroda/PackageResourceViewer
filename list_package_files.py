@@ -27,8 +27,13 @@ class ListPackageFilesCommand(sublime_plugin.WindowCommand):
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
             self.window.run_command("open_file", {"file": "${packages}/" + self.package + "/" + entry})
+            if self.package != "User" and self.settings.get("read_only_non_user", True):
+                self.set_read_only()
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
+
+    def set_read_only(self):
+        sublime.set_timeout(lambda: self.window.active_view().set_read_only(True), 10)
 
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)

@@ -1,4 +1,5 @@
 {
 	"ignored_directories": [".git", ".hg", ".svn"],
-	"open_multiple": false
+	"open_multiple": true,
+	"read_only_non_user": true
 }
