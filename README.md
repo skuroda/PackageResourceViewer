@@ -2,7 +2,7 @@
 Plugin to assist viewing and overriding package resources.
 
 ## Installation
-Note with either method, you may need to restart Sublime Text 2 for the plugin to load.
+Note with either method, you may need to restart Sublime Text 3 for the plugin to load.
 
 ### Package Control
 Installation through [package control](http://wbond.net/sublime_packages/package_control) is recommended. It will handle updating your packages as they become available. To install, do the following.
