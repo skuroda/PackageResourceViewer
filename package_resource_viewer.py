@@ -28,9 +28,11 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
 
     def open_file(self, package, resource):
-        content = get_package_resource(package, resource)
-        view = self.window.open_file(os.path.join(sublime.packages_path(), package, resource))
-        sublime.set_timeout(lambda: self.insert_text(content, view), 10)
+        resource_path = os.path.join(sublime.packages_path(), package, resource)
+        view = self.window.open_file(resource_path)
+        if not os.path.exists(resource_path):
+            content = get_package_resource(package, resource)
+            sublime.set_timeout(lambda: self.insert_text(content, view), 10)
         return view
 
     def insert_text(self, content, view):
@@ -70,9 +72,11 @@ class EditPackageFileCommand(PackageResourceViewerBase):
             self.show_quick_panel(self.packages, self.package_list_callback)
         else:
             package_path = os.path.join(sublime.packages_path(), self.package)
+            resource_path = os.path.join(package_path, entry)
             self.create_folder(package_path)
-            
-            view = self.open_file(os.path.join(package_path, entry))
+            view = self.open_file(self.package, entry)
+
+            sublime.set_timeout(lambda: self.setup_view(view), 15)
             if self.settings.get("open_multiple", False):
                 self.show_quick_panel(self.files, self.package_file_callback)
 
@@ -83,6 +87,13 @@ class EditPackageFileCommand(PackageResourceViewerBase):
             if not os.path.exists(parent):
                 self.create_folder(parent)
             os.mkdir(base)
+
+    def setup_view(self, view):
+        if not view.is_loading():
+            view.set_read_only(False)
+            view.run_command("save")
+        else: 
+            sublime.set_timeout(lambda: self.setup_view(content, view), 15)
 
 
 class InsertContentCommand(sublime_plugin.TextCommand):
