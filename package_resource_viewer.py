@@ -34,7 +34,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         resource_path = os.path.join(sublime.packages_path(), package, resource)
         view = self.window.open_file(resource_path)
         if not os.path.exists(resource_path):
-            if int(sublime.version()) > 3013:
+            if VERSION > 3013:
                 content = sublime.load_resource("Package/" + package + "/" + resource)
             else:
                 content = get_package_resource(package, resource)
@@ -66,7 +66,7 @@ class ViewPackageFileCommand(PackageResourceViewerBase):
             view.set_read_only(True)
             view.set_scratch(True)
         else:
-            sublime.set_timeout(lambda: self.setup_view(content, view), 10)
+            sublime.set_timeout(lambda: self.setup_view(view), 10)
 
 
 class EditPackageFileCommand(PackageResourceViewerBase):
@@ -99,7 +99,7 @@ class EditPackageFileCommand(PackageResourceViewerBase):
             view.set_read_only(False)
             view.run_command("save")
         else:
-            sublime.set_timeout(lambda: self.setup_view(content, view), 15)
+            sublime.set_timeout(lambda: self.setup_view(view), 15)
 
 
 class InsertContentCommand(sublime_plugin.TextCommand):
