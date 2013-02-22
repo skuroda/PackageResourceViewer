@@ -1,7 +1,7 @@
 import sublime
 import sublime_plugin
 import re
-from PackageResourceViewer.package_resources.package_resources import *
+from .package_resources import *
 
 VERSION = sublime.version()
 
@@ -38,7 +38,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def insert_text(self, content, view):
         if not view.is_loading():
             view.run_command("insert_content", {"content": content})
-        else: 
+        else:
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
 
 class ViewPackageFileCommand(PackageResourceViewerBase):
@@ -59,7 +59,7 @@ class ViewPackageFileCommand(PackageResourceViewerBase):
         if not view.is_loading():
             view.set_read_only(True)
             view.set_scratch(True)
-        else: 
+        else:
             sublime.set_timeout(lambda: self.setup_view(content, view), 10)
 
 
@@ -92,7 +92,7 @@ class EditPackageFileCommand(PackageResourceViewerBase):
         if not view.is_loading():
             view.set_read_only(False)
             view.run_command("save")
-        else: 
+        else:
             sublime.set_timeout(lambda: self.setup_view(content, view), 15)
 
 
