@@ -1,10 +1,13 @@
 import sublime
 import sublime_plugin
 import re
-from PackageResourceViewer.package_resources import *
 
-VERSION = sublime.version()
+VERSION = int(sublime.version())
 
+if VERSION >=3006:
+    from PackageResourceViewer.package_resources import *
+else:
+    from package_resources import *
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
