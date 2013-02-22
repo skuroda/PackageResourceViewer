@@ -1,6 +1,7 @@
 import sublime
 import sublime_plugin
 import re
+import os
 
 VERSION = int(sublime.version())
 
