@@ -1,10 +1,10 @@
 [
 	{
-        "caption": "PackageResourceViewer: View Package Files",
+        "caption": "PackageResourceViewer: View Package Resource",
         "command": "view_package_file"
     },
 	{
-        "caption": "PackageResourceViewer: Edit Package Files",
+        "caption": "PackageResourceViewer: Edit Package Resource",
         "command": "edit_package_file"
     }
 ]
