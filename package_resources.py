@@ -2,7 +2,7 @@
 MIT License
 Copyright (c) 2013 Scott Kuroda <scott.kuroda@gmail.com>
 
-SHA: 9fd3e48ce19f12e64eccb492a346a3f615427cdd
+SHA: d10b8514a1a7c06ef18677ef07256db65aefff4f
 """
 import sublime
 import os
@@ -102,7 +102,7 @@ def get_package_resource(package_name, resource, get_path=False, recursive_searc
     return None
 
 
-def list_package_files(package, ignored_directories=[]):
+def list_package_files(package, ignore_patterns=[]):
     """
     List files in the specified package.
     """
@@ -113,10 +113,6 @@ def list_package_files(package, ignored_directories=[]):
     file_list = []
     if os.path.exists(package_path):
         for root, directories, filenames in os.walk(package_path):
-            for directory in directories:
-                if directory in ignored_directories:
-                    directories.remove(directory)
-
             temp = root.replace(package_path, "")
             for filename in filenames:
                 file_list.append(os.path.join(temp, filename))
@@ -129,34 +125,34 @@ def list_package_files(package, ignored_directories=[]):
         if os.path.exists(os.path.join(packages_path, sublime_package)):
             file_set.update(_list_files_in_zip(packages_path, sublime_package))
 
-
         packages_path = os.path.dirname(sublime.executable_path()) + os.sep + "Packages"
 
         if os.path.exists(os.path.join(packages_path, sublime_package)):
            file_set.update(_list_files_in_zip(packages_path, sublime_package))
 
-    ignored_regex_list = []
     file_list = []
 
-
-    for ignored_directory in ignored_directories:
-        temp = "%s/" % ignored_directory
-        ignored_regex_list.append(re.compile(temp))
-
-    is_ignored = False
     for filename in file_set:
-        is_ignored = False
-        for ignored_regex in ignored_regex_list:
-            if ignored_regex.search(filename):
-                is_ignored = True
-                break
+        ignore = False
 
-        if is_ignored:
-            continue
-
-        file_list.append(_normalize_to_sublime_path(filename))
+        if not _ignore_file(filename, ignore_patterns):
+            file_list.append(_normalize_to_sublime_path(filename))
 
     return sorted(file_list)
+
+def _ignore_file(filename, ignore_patterns=[], iteration=0):
+
+    ignore = False
+    directory, base = os.path.split(filename)
+    for pattern in ignore_patterns:
+        if re.match(pattern, base):
+            return True
+
+    if len(directory) > 0:
+        iteration += 1
+        ignore = _ignore_file(directory, ignore_patterns, iteration)
+
+    return ignore
 
 
 def _normalize_to_sublime_path(path):
@@ -231,7 +227,7 @@ def _get_packages_from_directory(directory, file_ext=""):
 
 def _search_for_package_and_resource(path, packages_path):
     """
-    Derive the package and resource from  a path.
+    Derive the package and resource from a path.
     """
     relative_package_path = path.replace(packages_path + "/", "")
 

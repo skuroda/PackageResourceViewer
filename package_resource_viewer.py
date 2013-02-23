@@ -20,9 +20,9 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         if index == -1:
             return
         self.package = self.packages[index]
-        ignored_dirs = self.settings.get("ignored_directories", [])
+        ignore_patterns = self.settings.get("ignore_patterns", [])
         self.files = [".."]
-        self.files += list_package_files(self.package, ignored_dirs)
+        self.files += list_package_files(self.package, ignore_patterns)
         self.show_quick_panel(self.files, self.package_file_callback)
 
     def package_file_callback(self, index):

@@ -27,13 +27,13 @@ Open package resource as read only.
 
 `PackageResourceViewer: Edit Package Resource`:
 
-Open package resources as an editable file. Upon execution, this plugin will create a directory (if necessary) as well as save the resource.
+Open package resources as an editable file. Upon execution, this plugin will create a directory (if necessary) as well as save the resource. Note that these regular expressions are only compared against the file or directory name.
 
 ## Settings
-`ignored_directories`:
+`ignore_patterns`:
 
-Directories to ignore when listing files.
+A list of regular expressions of files to ignore.
 
 `open_multiple`:
 
-Setting to keep selection panel open after selecting a resource to open.
+Boolean to keep selection panel open after selecting a resource to open.

@@ -1,4 +1,10 @@
 {
-	"ignored_directories": [".git", ".hg", ".svn"],
+	// Open package resources as an editable file. Upon execution, this
+	// plugin will create a directory (if necessary) as well as save the
+	// resource. Note that these regular expressions are only compared
+	// against the file or directory name.
+	"ignore_patterns": ["\\.(git|hg|svn|DS_Store)"],
+	// Boolean setting to keep selection panel open after selecting a
+	// resource to open.
 	"open_multiple": true
 }
