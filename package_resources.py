@@ -297,5 +297,5 @@ if VERSION > 3000:
     if "PackageResourceViewer.package_resource_viewer" in sys.modules:
         reload(sys.modules["PackageResourceViewer.package_resource_viewer"])
 else:
-    if ".package_resource_viewer" in sys.modules:
+    if "package_resource_viewer" in sys.modules:
         reload(sys.modules["package_resource_viewer"])
