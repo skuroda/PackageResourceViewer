@@ -10,7 +10,7 @@ import zipfile
 import tempfile
 import re
 import codecs
-
+import sys
 
 __all__ = [
     "get_package_resource",
@@ -291,91 +291,11 @@ def _find_file(abs_dir, file_name):
 
     return ret_path
 
-##################################### TESTS ####################################
-import sys
-import unittest
-
-class GetPackageAssetTests(unittest.TestCase):
-    def test_list_package_files(self):
-        list_package_files("Default")
-        list_package_files("Default", ["send2trash"])
-
-    def test_get_packages_list(self):
-        get_packages_list()
-
-    def test_get_package_resource(self):
-        tc = get_package_resource
-        aseq = self.assertEquals
-
-        # Search sublime-package. No assertion since
-        package, resource = get_package_and_resource_name(os.path.abspath(__file__))
-        res = get_package_resource(package, resource, return_binary=True)
-        with codecs.open(__file__, "rb") as file_obj:
-            content = file_obj.read()
-        aseq(res, content)
-
-        #
-        res = get_package_resource("Default", "not_here.txt")
-        aseq(res, None)
-
-
-
-    def test_get_package_and_resource_name(self):
-        tc = get_package_and_resource_name
-        aseq = self.assertEquals
-
-        r1 = (tc("Packages\\Relative\\one.py"))
-        r2 = (tc("Packages\\Relative\\nested\\one.py"))
-        r3 = (tc(sublime.packages_path() + "\\Absolute\\Nested\\asset.pth"))
-        r4 = (tc(sublime.packages_path() + "\\Absolute\\asset.pth"))
-
-        aseq(r1, ('Relative', 'one.py'))
-        aseq(r2, ('Relative', 'nested/one.py'))
-        aseq(r3, ('Absolute', 'Nested/asset.pth'))
-        aseq(r4, ('Absolute', 'asset.pth'))
-
-        r1 = (tc("Packages/Relative/one.py"))
-        r2 = (tc("Packages/Relative/nested/one.py"))
-        r3 = (tc(sublime.packages_path() + "/Absolute/Nested/asset.pth"))
-        r4 = (tc(sublime.packages_path() + "/Absolute/asset.pth"))
-
-
-        aseq(r1, ('Relative', 'one.py'))
-        aseq(r2, ('Relative', 'nested/one.py'))
-        aseq(r3, ('Absolute', 'Nested/asset.pth'))
-        aseq(r4, ('Absolute', 'asset.pth'))
-
-        if VERSION > 3000:
-            r1 = (tc(sublime.installed_packages_path() + "\\Absolute.sublime-package\\Nested\\asset.pth"))
-            r2 = (tc(sublime.installed_packages_path() + "\\Absolute.sublime-package\\asset.pth"))
-            aseq(r1, ('Absolute', 'Nested/asset.pth'))
-            aseq(r2, ('Absolute', 'asset.pth'))
-            r1 = (tc(sublime.installed_packages_path() + "/Absolute.sublime-package/Nested/asset.pth"))
-            r2 = (tc(sublime.installed_packages_path() + "/Absolute.sublime-package/asset.pth"))
-            aseq(r1, ('Absolute', 'Nested/asset.pth'))
-            aseq(r2, ('Absolute', 'asset.pth'))
-            executable_path = os.path.dirname(sublime.executable_path()) + os.sep + "Packages"
-            r1 = (tc(executable_path + "\\Absolute.sublime-package\\Nested\\asset.pth"))
-            r2 = (tc(executable_path + "\\Absolute.sublime-package\\asset.pth"))
-            aseq(r1, ('Absolute', 'Nested/asset.pth'))
-            aseq(r2, ('Absolute', 'asset.pth'))
-            r1 = (tc(executable_path + "/Absolute.sublime-package/Nested/asset.pth"))
-            r2 = (tc(executable_path + "/Absolute.sublime-package/asset.pth"))
-            aseq(r1, ('Absolute', 'Nested/asset.pth'))
-            aseq(r2, ('Absolute', 'asset.pth'))
-
-################ ONLY LOAD TESTS WHEN DEVELOPING NOT ON START UP ###############
-
-try:               times_module_has_been_reloaded  += 1
-except NameError:  times_module_has_been_reloaded  =  0       #<em>re</em>loaded
-
-if times_module_has_been_reloaded:
-    target = __name__
-    suite = unittest.TestLoader().loadTestsFromName(target)
-
-    unittest.TextTestRunner(stream = sys.stdout,  verbosity=0).run(suite)
-
-    print ("running tests", target)
-    print ('\nReloads: %s' % times_module_has_been_reloaded)
-
-################################################################################
+####################### Force resource viewer to reload ########################
+if VERSION > 3000:
+    from imp import reload
+    if "PackageResourceViewer.package_resource_viewer" in sys.modules:
+        reload(sys.modules["PackageResourceViewer.package_resource_viewer"])
+else:
+    if ".package_resource_viewer" in sys.modules:
+        reload(sys.modules["package_resource_viewer"])
