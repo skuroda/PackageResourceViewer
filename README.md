@@ -1,8 +1,8 @@
 # PackageResourceViewer
-Plugin to assist viewing and overriding package resources.
+Plugin to assist viewing and editing package resources in Sublime Text 2 and Sublime Text 3.
 
 ## Installation
-Note with either method, you may need to restart Sublime Text 3 for the plugin to load.
+Note with either method, you may need to restart Sublime Text for the plugin to load properly.
 
 ### Package Control
 Installation through [package control](http://wbond.net/sublime_packages/package_control) is recommended. It will handle updating your packages as they become available. To install, do the following.
@@ -27,12 +27,12 @@ Open package resource as read only.
 
 `PackageResourceViewer: Edit Package Resource`:
 
-Open package resources as an editable file. Upon execution, this plugin will create a directory (if necessary) as well as save the resource. Note that these regular expressions are only compared against the file or directory name.
+Open package resources as an editable file. Upon execution, this plugin will create a directory (if necessary) as well as save the resource.
 
 ## Settings
 `ignore_patterns`:
 
-A list of regular expressions of files to ignore.
+A list of regular expressions patterns to ignore. Note that these regular expressions are compared against the file or directory name.
 
 `open_multiple`:
 
