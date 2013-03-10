@@ -35,7 +35,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         resource_path = os.path.join(sublime.packages_path(), package, resource)
         view = self.window.open_file(resource_path)
         if not os.path.exists(resource_path):
-            content = get_package_resource(package, resource)
+            content = get_resource(package, resource)
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
         return view
 
