@@ -282,7 +282,10 @@ def extract_zip_resource(path_to_zip, resource, extract_dir=None):
 
     return file_location
 
+
 ####################### Force resource viewer to reload ########################
+import sys
+
 if VERSION > 3000:
     from imp import reload
     if "PackageResourceViewer.package_resource_viewer" in sys.modules:
