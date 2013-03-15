@@ -7,8 +7,6 @@ Note with either method, you may need to restart Sublime Text for the plugin to 
 ### Package Control
 Installation through [package control](http://wbond.net/sublime_packages/package_control) is recommended. It will handle updating your packages as they become available. To install, do the following.
 
-* In the Command Palette, enter `Package Control: Add Repository`
-* Enter the following URL into the input box: `https://github.com/skuroda/PackageResourceViewer`
 * In the Command Palette, enter `Package Control: Install Package`
 * Search for `PackageResourceViewer`
 
@@ -20,6 +18,7 @@ Clone or copy this repository into the packages directory. Ensure it is placed i
 * Linux: ~/.config/sublime-text-2/Packages/
 
 ## Usage
+
 ### Commands
 `PackageResourceViewer: View Package Resource`:
 
