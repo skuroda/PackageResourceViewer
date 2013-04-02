@@ -12,9 +12,9 @@ else:
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
-        self.packages = get_packages_list()
-        self.show_quick_panel(self.packages, self.package_list_callback)
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        self.packages = get_packages_list(True, self.settings.get("ignore_patterns", []))
+        self.show_quick_panel(self.packages, self.package_list_callback)
 
     def package_list_callback(self, index):
         if index == -1:
