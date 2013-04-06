@@ -14,7 +14,6 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
         self.packages = get_packages_list(True, self.settings.get("ignore_patterns", []))
-        self.package_files = {}
         self.path = []
         self.path_objs = []
         self.show_quick_panel(self.packages, self.package_list_callback)
@@ -44,7 +43,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
             self.path_objs.pop()
 
     def is_file(self, entry):
-        return self.path_objs[-1][entry] == ""
+        return len(self.path_objs[-1][entry]) == 0
 
 
     def create_quick_panel_file_list(self, files_obj):
@@ -69,7 +68,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
                 obj[split_file[0]] = {}
             self.create_file_entry(split_file[1], obj[split_file[0]])
         else:
-            obj[file_path] = ""
+            obj[file_path] = {}
 
     def split_dirs_and_files(self, obj):
         files = []
@@ -77,7 +76,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
 
         for key in obj.keys():
             entry = obj[key]
-            if entry == "":
+            if len(entry) == 0:
                 files.append(key)
             else:
                 dirs.append(key + "/")
@@ -111,6 +110,9 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def pre_open_file_setup(self, entry):
         pass
 
+    def setup_view(self, view):
+        pass
+
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
 
@@ -142,7 +144,7 @@ class EditPackageFileCommand(PackageResourceViewerBase):
         package_path = os.path.join(sublime.packages_path(), self.package, os.sep.join(self.path))
         self.create_folder(package_path)
 
-    def create_folder(self, base):
+    def create_folder(self, path):
         try:
             os.makedirs(path)
         except OSError as ex:
