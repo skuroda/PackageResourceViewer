@@ -10,7 +10,7 @@ if VERSION >=3006:
 else:
     from package_resources import *
 
-class PackageResourceViewerBase(sublime_plugin.WindowCommand):
+class PackageResourceViewerCommand(sublime_plugin.WindowCommand):
     def run(self):
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
         self.packages = get_packages_list(True, self.settings.get("ignore_patterns", []))
@@ -122,6 +122,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         if not os.path.exists(resource_path):
             content = get_resource(package, resource)
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
+            view.settings().set("create_dir", True)
         return view
 
     def insert_text(self, content, view):
@@ -130,19 +131,12 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         else:
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
 
-class ViewPackageFileCommand(PackageResourceViewerBase):
-    def setup_view(self, view):
-        if not view.is_loading():
-            view.set_read_only(True)
-            view.set_scratch(True)
-        else:
-            sublime.set_timeout(lambda: self.setup_view(view), 10)
-
-
-class EditPackageFileCommand(PackageResourceViewerBase):
-    def pre_open_file_setup(self, entry):
-        package_path = os.path.join(sublime.packages_path(), self.package, os.sep.join(self.path))
-        self.create_folder(package_path)
+class PackageResourceViewerEvents(sublime_plugin.EventListener):
+    def on_pre_save(self, view):
+        if view.settings().get("create_dir", False):
+            if not os.path.exists(view.file_name()):
+                directory = os.path.dirname(view.file_name())
+                self.create_folder(directory)
 
     def create_folder(self, path):
         try:
@@ -150,14 +144,6 @@ class EditPackageFileCommand(PackageResourceViewerBase):
         except OSError as ex:
             if ex.errno != errno.EEXIST:
                 raise
-
-    def setup_view(self, view):
-        if not view.is_loading():
-            view.set_read_only(False)
-            view.run_command("save")
-        else:
-            sublime.set_timeout(lambda: self.setup_view(view), 15)
-
 
 class InsertContentCommand(sublime_plugin.TextCommand):
     def run(self, edit, content):

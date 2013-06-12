@@ -20,13 +20,9 @@ Clone or copy this repository into the packages directory. Ensure it is placed i
 ## Usage
 
 ### Commands
-`PackageResourceViewer: View Package Resource`:
+`PackageResourceViewer: Open Resource`:
 
-Open package resource as read only.
-
-`PackageResourceViewer: Edit Package Resource`:
-
-Open package resources as an editable file. Upon execution, this plugin will create a directory (if necessary) as well as save the resource.
+Command to open the resource. If saved, the correct directory structure will be created in the `Packages` folder.
 
 ## Settings
 `ignore_patterns`:
