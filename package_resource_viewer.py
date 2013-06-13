@@ -10,7 +10,7 @@ if VERSION >=3006:
 else:
     from package_resources import *
 
-class PackageResourceViewerCommand(sublime_plugin.WindowCommand):
+class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
         self.packages = get_packages_list(True, self.settings.get("ignore_patterns", []))
@@ -122,7 +122,8 @@ class PackageResourceViewerCommand(sublime_plugin.WindowCommand):
         if not os.path.exists(resource_path):
             content = get_resource(package, resource)
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
-            view.settings().set("create_dir", True)
+            if settings.get("single_command", True):
+                view.settings().set("create_dir", True)
         return view
 
     def insert_text(self, content, view):
@@ -130,6 +131,48 @@ class PackageResourceViewerCommand(sublime_plugin.WindowCommand):
             view.run_command("insert_content", {"content": content})
         else:
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
+
+
+class PackageResourceViewerCommand(PackageResourceViewerBase):
+    def is_visible(self):
+        settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        return settings.get("single_command", True)
+
+
+class ViewPackageFileCommand(PackageResourceViewerBase):
+    def setup_view(self, view):
+        if not view.is_loading():
+            view.set_read_only(True)
+            view.set_scratch(True)
+        else:
+            sublime.set_timeout(lambda: self.setup_view(view), 10)
+
+    def is_visible(self):
+        settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        return not settings.get("single_command", True)
+
+class EditPackageFileCommand(PackageResourceViewerBase):
+    def pre_open_file_setup(self, entry):
+        package_path = os.path.join(sublime.packages_path(), self.package, os.sep.join(self.path))
+        self.create_folder(package_path)
+
+    def create_folder(self, path):
+        try:
+            os.makedirs(path)
+        except OSError as ex:
+            if ex.errno != errno.EEXIST:
+                raise
+
+    def setup_view(self, view):
+        if not view.is_loading():
+            view.set_read_only(False)
+            view.run_command("save")
+        else:
+            sublime.set_timeout(lambda: self.setup_view(view), 15)
+
+    def is_visible(self):
+        settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        return not settings.get("single_command", True)
 
 class PackageResourceViewerEvents(sublime_plugin.EventListener):
     def on_pre_save(self, view):
