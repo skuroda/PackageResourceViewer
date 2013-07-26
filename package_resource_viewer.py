@@ -122,7 +122,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         if not os.path.exists(resource_path):
             content = get_resource(package, resource)
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
-            if settings.get("single_command", True):
+            if self.settings.get("single_command", True):
                 view.settings().set("create_dir", True)
         return view
 
