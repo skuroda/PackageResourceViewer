@@ -121,14 +121,18 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         view = self.window.open_file(resource_path)
         if not os.path.exists(resource_path):
             content = get_resource(package, resource)
+            view.settings().set("buffer_empty", True)
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
             if self.settings.get("single_command", True):
                 view.settings().set("create_dir", True)
+                view.set_scratch(True)
+
         return view
 
     def insert_text(self, content, view):
         if not view.is_loading():
             view.run_command("insert_content", {"content": content})
+            view.settings().set("buffer_empty", False)
         else:
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
 
@@ -180,6 +184,13 @@ class PackageResourceViewerEvents(sublime_plugin.EventListener):
             if not os.path.exists(view.file_name()):
                 directory = os.path.dirname(view.file_name())
                 self.create_folder(directory)
+
+    def on_modified(self, view):
+        if view.settings().get("create_dir", False):
+            if not view.settings().get("buffer_empty", False):
+                if view.is_scratch():
+                    view.set_scratch(False)
+
 
     def create_folder(self, path):
         try:
