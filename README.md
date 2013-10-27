@@ -30,6 +30,10 @@ By default, the Packages directories for Sublime Text 3 are located at:
 
 Command to open the resource. If saved, the correct directory structure will be created in the `Packages` folder. This command will only be displayed if the `single_command` setting is true.
 
+`PackageResourceViewer: Extract Package`:
+
+Command to extract a package to the `Packages` directory. This command is only available in ST3.
+
 `PackageResourceViewer: View Package Resource`:
 
 Open package resource as read only. This command will only be displayed if the `single_command` setting is false.

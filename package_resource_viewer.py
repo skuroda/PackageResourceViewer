@@ -199,6 +199,25 @@ class PackageResourceViewerEvents(sublime_plugin.EventListener):
             if ex.errno != errno.EEXIST:
                 raise
 
+class ExtractPackageCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
+        self.path = []
+        self.path_objs = []
+        self.show_quick_panel(self.packages, self.package_list_callback)
+
+    def package_list_callback(self, index):
+        if index == -1:
+            return
+        extract_package(self.packages[index])
+
+    def show_quick_panel(self, options, done_callback):
+        sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
+
+    def is_visible(self):
+        return VERSION >= 3006
+
 class InsertContentCommand(sublime_plugin.TextCommand):
     def run(self, edit, content):
         self.view.insert(edit, 0, content)

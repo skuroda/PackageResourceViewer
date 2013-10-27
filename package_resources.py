@@ -2,7 +2,7 @@
 MIT License
 Copyright (c) 2013 Scott Kuroda <scott.kuroda@gmail.com>
 
-SHA: 1fad6939ced24a0ce9cbf69e5ddf8177ccbf829b
+SHA: 623a4c1ec46dbbf3268bd88131bf0dfc845af787
 """
 import sublime
 import os
@@ -17,7 +17,9 @@ __all__ = [
     "find_resource",
     "list_package_files",
     "get_package_and_resource_name",
-    "get_packages_list"
+    "get_packages_list",
+    "extract_package",
+    "get_sublime_packages"
 ]
 
 
@@ -201,6 +203,11 @@ def get_packages_list(ignore_packages=True, ignore_patterns=[]):
 
     return sorted(list(package_set))
 
+def get_sublime_packages(ignore_packages=True, ignore_patterns=[]):
+    package_list = get_packages_list(ignore_packages, ignore_patterns)
+    extracted_list = _get_packages_from_directory(sublime.packages_path())
+    return [x for x in package_list if x not in extracted_list]      
+
 def _get_packages_from_directory(directory, file_ext=""):
     package_list = []
     for package in os.listdir(directory):
@@ -291,6 +298,18 @@ def extract_zip_resource(path_to_zip, resource, extract_dir=None):
             file_location = zip_file.extract(resource, extract_dir)
 
     return file_location
+
+def extract_package(package):
+    if VERSION >= 3006:
+        package_location = os.path.join(sublime.installed_packages_path(), package + ".sublime-package")
+        if not os.path.exists(package_location):
+            package_location = os.path.join(os.path.dirname(sublime.executable_path()), "Packages", package + ".sublime-package")
+            if not os.path.exists(package_location):
+                package_location = None
+        if package_location:
+            with zipfile.ZipFile(package_location) as zip_file:
+                extract_location = os.path.join(sublime.packages_path(), package)
+                zip_file.extractall(extract_location)
 
 
 ####################### Force resource viewer to reload ########################

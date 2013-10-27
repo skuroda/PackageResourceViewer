@@ -10,5 +10,9 @@
     {
         "caption": "PackageResourceViewer: Edit Package Resource",
         "command": "edit_package_file"
+    },
+    {
+        "caption": "PackageResourceViewer: Extract Package",
+        "command": "extract_package"
     }
 ]
