@@ -1,0 +1,2 @@
+New Features:
+- New command to extract an entire package. This is only available in ST3.
