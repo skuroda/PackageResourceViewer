@@ -4,18 +4,20 @@ import os
 import errno
 
 VERSION = int(sublime.version())
-
-if VERSION >=3006:
+IS_ST3 = VERSION >=3006
+if IS_ST3:
     from PackageResourceViewer.package_resources import *
 else:
     from package_resources import *
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
+        self.previous_index = -1
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
         self.packages = get_packages_list(True, self.settings.get("ignore_patterns", []))
         self.path = []
         self.path_objs = []
+        self.path_index = []
         self.show_quick_panel(self.packages, self.package_list_callback)
 
     def package_list_callback(self, index):
@@ -27,6 +29,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         self.package_files = {}
         self.quick_panel_files = self.create_quick_panel_file_list(self.package_files)
         self.add_entry_to_path_obj()
+        self.path_index.append(index)
         self.show_quick_panel(self.quick_panel_files, self.package_file_callback)
 
     def add_entry_to_path_obj(self, entry=""):
@@ -87,15 +90,19 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
         if index == -1:
             return
         entry = self.quick_panel_files[index]
+
         if entry == "..":
+            if len(self.path_index) != 0:
+                index = self.path_index.pop()
             self.pop_entry_from_path_obj()
             if len(self.path_objs) == 0:
-                self.show_quick_panel(self.packages, self.package_list_callback)
+                self.show_quick_panel(self.packages, self.package_list_callback, index)
             else:
                 self.quick_panel_files = self.create_quick_panel_file_list(self.path_objs[-1])
-                self.show_quick_panel(self.quick_panel_files, self.package_file_callback)
+                self.show_quick_panel(self.quick_panel_files, self.package_file_callback, index)
         else:
             entry = entry.replace("/", "")
+            self.path_index.append(index)
             if self.is_file(entry):
                 self.pre_open_file_setup(entry)
                 view = self.open_file(self.package, "/".join(self.path + [entry]))
@@ -113,8 +120,11 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def setup_view(self, view):
         pass
 
-    def show_quick_panel(self, options, done_callback):
-        sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
+    def show_quick_panel(self, options, done_callback, index=None):
+        if index is None or not IS_ST3 or not self.settings.get("return_to_previous", False):
+            sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
+        else:
+            sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback, selected_index=index), 10)
 
     def open_file(self, package, resource):
         resource_path = os.path.join(sublime.packages_path(), package, resource)

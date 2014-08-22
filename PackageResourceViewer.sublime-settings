@@ -11,5 +11,9 @@
     // Boolean setting specifying if a single command should be listed
     // in the command palette for viewing and editing files or
     // if multiple commands should be used.
-    "single_command": true
+    "single_command": true,
+
+    // True if, when moving up a directory, you would like the previous
+    // selection to be automatically chosen. False otherwise.
+    "return_to_previous": false
 }

@@ -55,6 +55,10 @@ Boolean to keep selection panel open after selecting a resource to open.
 
 Boolean setting specifying if a single command should be listed in the command palette for viewing and editing files or if multiple commands should be used.
 
+`return_to_previous`:
+
+True if, when moving up a directory, you would like the previous selection to be automatically chosen. False otherwise.
+
 # License
 
 The MIT License (MIT)
