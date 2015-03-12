@@ -1,8 +1,8 @@
 """
 MIT License
-Copyright (c) 2013 Scott Kuroda <scott.kuroda@gmail.com>
+Copyright (c) 2015 Scott Kuroda <scott.kuroda@gmail.com>
 
-SHA: 623a4c1ec46dbbf3268bd88131bf0dfc845af787
+SHA: 32c74e6071f870217d5b407742bf41865f00a788
 """
 import sublime
 import os
@@ -62,7 +62,7 @@ def _get_resource(package_name, resource, return_binary=False, encoding="utf-8")
                 if os.path.exists(os.path.join(packages_path, sublime_package)):
                     content = _get_zip_item_content(os.path.join(packages_path, sublime_package), resource, return_binary, encoding)
 
-    return content
+    return content.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def find_resource(resource_pattern, package=None):
