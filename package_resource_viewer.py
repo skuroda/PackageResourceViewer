@@ -128,7 +128,7 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
 
     def open_file(self, package, resource):
         resource_path = os.path.join(sublime.packages_path(), package, resource)
-        view = self.window.find_open_file(resource_path)
+        view = self.find_open_file(resource_path)
         if view:
             self.window.focus_view(view)
         else:
@@ -151,15 +151,10 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
             sublime.set_timeout(lambda: self.insert_text(content, view), 10)
 
     def find_open_file(self, path):
+        view = None
         if IS_ST3:
             view = self.window.find_open_file(path)
         return view
-
-    # def find_open_file_st2(self, path):
-    #     views = self.window.views()
-    #     for view in views:
-    #         if view.file_name() == path:
-    #             return view
 
 
 class PackageResourceViewerCommand(PackageResourceViewerBase):
