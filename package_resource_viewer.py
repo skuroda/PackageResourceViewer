@@ -1,6 +1,7 @@
 import sublime
 import sublime_plugin
 import os
+import threading
 import errno
 
 VERSION = int(sublime.version())
@@ -9,6 +10,9 @@ if IS_ST3:
     from PackageResourceViewer.package_resources import *
 else:
     from package_resources import *
+
+def no_packages_available_message():
+    sublime.message_dialog("PackageResourceViewer:\n\nThere are no more packages available to extract.")
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
@@ -225,12 +229,24 @@ class ExtractPackageCommand(sublime_plugin.WindowCommand):
         self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
         self.path = []
         self.path_objs = []
-        self.show_quick_panel(self.packages, self.package_list_callback)
+
+        if self.packages:
+            self.show_quick_panel(self.packages, self.package_list_callback)
+
+        else:
+            no_packages_available_message()
 
     def package_list_callback(self, index):
         if index == -1:
             return
-        extract_package(self.packages[index])
+
+        thread = threading.Thread( target=self.start, args=(index,) )
+        thread.start()
+
+    def start(self, index):
+        package_name = self.packages[index]
+        extract_package(package_name)
+        sublime.message_dialog("PackageResourceViewer:\n\nSuccessfully extracted the package %s." % package_name)
 
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
@@ -240,15 +256,26 @@ class ExtractPackageCommand(sublime_plugin.WindowCommand):
 
 class ExtractAllPackagesCommand(sublime_plugin.WindowCommand):
     def run(self):
+        thread = threading.Thread( target=self.start )
+        thread.start()
+
+    def start(self):
         self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
         self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
         packages_path = sublime.packages_path()
 
-        for package in self.packages:
-            full_path = os.path.join(packages_path, package, '.extracted-sublime-package')
+        if self.packages:
 
-            if not os.path.exists(full_path):
-                extract_package(package)
+            for package in self.packages:
+                full_path = os.path.join(packages_path, package, '.extracted-sublime-package')
+
+                if not os.path.exists(full_path):
+                    extract_package(package)
+
+            sublime.message_dialog("PackageResourceViewer:\n\nSuccessfully extracted the packages.")
+
+        else:
+            no_packages_available_message()
 
     def is_visible(self):
         return VERSION >= 3006
