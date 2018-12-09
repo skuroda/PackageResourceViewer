@@ -238,6 +238,21 @@ class ExtractPackageCommand(sublime_plugin.WindowCommand):
     def is_visible(self):
         return VERSION >= 3006
 
+class ExtractAllPackagesCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
+        packages_path = sublime.packages_path()
+
+        for package in self.packages:
+            full_path = os.path.join(packages_path, package, '.extracted-sublime-package')
+
+            if not os.path.exists(full_path):
+                extract_package(package)
+
+    def is_visible(self):
+        return VERSION >= 3006
+
 class InsertContentCommand(sublime_plugin.TextCommand):
     def run(self, edit, content):
         self.view.insert(edit, 0, content)

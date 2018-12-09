@@ -206,7 +206,8 @@ def get_packages_list(ignore_packages=True, ignore_patterns=[]):
 def get_sublime_packages(ignore_packages=True, ignore_patterns=[]):
     package_list = get_packages_list(ignore_packages, ignore_patterns)
     extracted_list = _get_packages_from_directory(sublime.packages_path())
-    return [x for x in package_list if x not in extracted_list]      
+    extracted_list.extend(['0_packagesmanager_loader', '0_package_control_loader', '0_settings_loader'])
+    return [x for x in package_list if x not in extracted_list]
 
 def _get_packages_from_directory(directory, file_ext=""):
     package_list = []
@@ -310,6 +311,10 @@ def extract_package(package):
             with zipfile.ZipFile(package_location) as zip_file:
                 extract_location = os.path.join(sublime.packages_path(), package)
                 zip_file.extractall(extract_location)
+
+                full_path = os.path.join(extract_location, '.extracted-sublime-package')
+                if not os.path.exists(full_path):
+                    open(full_path, 'a').close()
 
 
 ####################### Force resource viewer to reload ########################
