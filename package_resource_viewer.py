@@ -12,7 +12,25 @@ else:
     from package_resources import *
 
 def no_packages_available_message():
-    sublime.message_dialog("PackageResourceViewer:\n\nThere are no more packages available to extract.")
+    sublime.message_dialog("PackageResourceViewer\n\nThere are no more packages available to extract.")
+
+def show_quick_panel(window, informations, on_done, selected_index=0):
+    window.show_quick_panel( informations, on_done, sublime.KEEP_OPEN_ON_FOCUS_LOST, selected_index )
+
+def format_packages_list(packages_list, maximum_length=500):
+    length = 0
+    contents = []
+
+    for index, name in enumerate( packages_list ):
+        contents.append( "%s. %s" % ( index + 1, name ) )
+        length += len( contents[-1] )
+
+        if length > maximum_length:
+            remaining = len( packages_list ) - index - 1
+            if remaining > 0: contents.append( "and more {} packages!".format( remaining ) )
+            break
+
+    return ", ".join( contents )
 
 class PackageResourceViewerBase(sublime_plugin.WindowCommand):
     def run(self):
@@ -246,7 +264,7 @@ class ExtractPackageCommand(sublime_plugin.WindowCommand):
     def start(self, index):
         package_name = self.packages[index]
         extract_package(package_name)
-        sublime.message_dialog("PackageResourceViewer:\n\nSuccessfully extracted the package %s." % package_name)
+        sublime.message_dialog("PackageResourceViewer\n\nSuccessfully extracted the package: %s." % package_name)
 
     def show_quick_panel(self, options, done_callback):
         sublime.set_timeout(lambda: self.window.show_quick_panel(options, done_callback), 10)
@@ -256,29 +274,116 @@ class ExtractPackageCommand(sublime_plugin.WindowCommand):
 
 class ExtractAllPackagesCommand(sublime_plugin.WindowCommand):
     def run(self):
-        thread = threading.Thread( target=self.start )
+        thread = ExtractAllPackagesThread(self.window)
         thread.start()
-
-    def start(self):
-        self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
-        self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
-        packages_path = sublime.packages_path()
-
-        if self.packages:
-
-            for package in self.packages:
-                full_path = os.path.join(packages_path, package, '.extracted-sublime-package')
-
-                if not os.path.exists(full_path):
-                    extract_package(package)
-
-            sublime.message_dialog("PackageResourceViewer:\n\nSuccessfully extracted the packages.")
-
-        else:
-            no_packages_available_message()
 
     def is_visible(self):
         return VERSION >= 3006
+
+class ExtractAllPackagesThread(threading.Thread):
+
+    def __init__(self, window):
+        threading.Thread.__init__(self)
+        self.window = window
+
+        self.exclusion_flag   = " (selected)"
+        self.inclusion_flag   = " (excluded)"
+        self.last_picked_item = 0
+        self.last_excluded_items = 0
+
+    def run(self):
+        self.settings = sublime.load_settings("PackageResourceViewer.sublime-settings")
+        self.repositories_list = [""]
+        self.packages = get_sublime_packages(True, self.settings.get("ignore_patterns", []))
+        self.repositories_list.extend( self.packages )
+
+        if len( self.repositories_list ) < 2:
+            no_packages_available_message()
+            return
+
+        self.update_start_item_name()
+        show_quick_panel( self.window, self.repositories_list, self.on_done )
+
+    def on_done(self, picked_index):
+
+        if picked_index < 0:
+            return
+
+        if picked_index == 0:
+
+            # No repositories selected, reshow the menu
+            if self.get_total_items_selected() == len( self.packages ):
+                show_quick_panel( self.window, self.repositories_list, self.on_done )
+
+            else:
+                packages = set()
+                extracted = []
+
+                for index in range( 1, self.last_picked_item + 1 ):
+                    package_name = self.repositories_list[index]
+
+                    if package_name.endswith( self.exclusion_flag ):
+                        continue
+
+                    if package_name.endswith( self.inclusion_flag ):
+                        package_name = package_name[:-len( self.inclusion_flag )]
+
+                    packages.add( package_name )
+
+                def extract():
+                    packages_path = sublime.packages_path()
+
+                    for package_name in self.packages:
+
+                        if package_name not in packages:
+                            full_path = os.path.join(packages_path, package_name, '.extracted-sublime-package')
+
+                            if not os.path.exists(full_path):
+                                extracted.append(package_name)
+                                extract_package(package_name)
+
+                    sublime.message_dialog("PackageResourceViewer\n\nSuccessfully extracted the packages:\n%s" % (
+                            format_packages_list(extracted, 1000) ) )
+
+                thread = threading.Thread( target=extract )
+                thread.start()
+
+        else:
+
+            if picked_index <= self.last_picked_item:
+                picked_package = self.repositories_list[picked_index]
+
+                if picked_package.endswith( self.inclusion_flag ):
+                    picked_package = picked_package[:-len( self.inclusion_flag )]
+
+                if picked_package.endswith( self.exclusion_flag ):
+
+                    if picked_package.endswith( self.exclusion_flag ):
+                        picked_package = picked_package[:-len( self.exclusion_flag )]
+
+                    self.last_excluded_items -= 1
+                    self.repositories_list[picked_index] = picked_package + self.inclusion_flag
+
+                else:
+                    self.last_excluded_items += 1
+                    self.repositories_list[picked_index] = picked_package + self.exclusion_flag
+
+            else:
+                self.last_picked_item += 1
+                self.repositories_list[picked_index] = self.repositories_list[picked_index] + self.inclusion_flag
+
+            self.update_start_item_name()
+            self.repositories_list.insert( 1, self.repositories_list.pop( picked_index ) )
+
+            show_quick_panel( self.window, self.repositories_list, self.on_done )
+
+    def update_start_item_name(self):
+        items = self.get_total_items_selected()
+        total = len( self.packages )
+        self.repositories_list[0] = "Start Extraction (%s of %s items selected)" % ( total - items, total )
+
+    def get_total_items_selected(self):
+        return self.last_picked_item - self.last_excluded_items
 
 class InsertContentCommand(sublime_plugin.TextCommand):
     def run(self, edit, content):
