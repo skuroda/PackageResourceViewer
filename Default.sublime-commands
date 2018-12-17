@@ -14,5 +14,9 @@
     {
         "caption": "PackageResourceViewer: Extract Package",
         "command": "extract_package"
+    },
+    {
+        "caption": "PackageResourceViewer: Extract All Packages",
+        "command": "extract_all_packages"
     }
 ]
