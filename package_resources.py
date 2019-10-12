@@ -185,28 +185,24 @@ def get_packages_list(ignore_packages=True, ignore_patterns=[]):
         executable_package_path = os.path.dirname(sublime.executable_path()) + os.sep + "Packages"
         package_set.update(_get_packages_from_directory(executable_package_path, ".sublime-package"))
 
-
+    ignore_set = []
     if ignore_packages:
-        ignored_list = sublime.load_settings(
-            "Preferences.sublime-settings").get("ignored_packages", [])
-    else:
-        ignored_list = []
+        ignore_set = set(sublime.load_settings(
+            "PackageResourceViewer.sublime-settings").get("ignored_packages", []))
 
-    for package in package_set:
+    for package in list(package_set):
         for pattern in ignore_patterns:
             if re.match(pattern, package):
-                ignored_list.append(package)
+                package_set.discard(package)
                 break
-
-    for ignored in ignored_list:
-        package_set.discard(ignored)
+        if package in ignore_set:
+            package_set.discard(package)
 
     return sorted(list(package_set))
 
 def get_sublime_packages(ignore_packages=True, ignore_patterns=[]):
     package_list = get_packages_list(ignore_packages, ignore_patterns)
     extracted_list = _get_packages_from_directory(sublime.packages_path())
-    extracted_list.extend(['0_packagesmanager_loader', '0_package_control_loader', '0_settings_loader'])
     return [x for x in package_list if x not in extracted_list]
 
 def _get_packages_from_directory(directory, file_ext=""):
