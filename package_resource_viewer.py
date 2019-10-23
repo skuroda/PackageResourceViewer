@@ -5,7 +5,7 @@ import threading
 import errno
 
 VERSION = int(sublime.version())
-IS_ST3 = VERSION >=3006
+IS_ST3 = VERSION >= 3006
 if IS_ST3:
     from PackageResourceViewer.package_resources import *
 else:
@@ -47,7 +47,6 @@ class PackageResourceViewerBase(sublime_plugin.WindowCommand):
             return
 
         self.package = self.packages[index]
-        ignore_patterns = self.settings.get("ignore_patterns", [])
         self.package_files = {}
         self.quick_panel_files = self.create_quick_panel_file_list(self.package_files)
         self.add_entry_to_path_obj()
