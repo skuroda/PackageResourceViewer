@@ -27,7 +27,7 @@ def format_packages_list(packages_list, maximum_length=500):
 
         if length > maximum_length:
             remaining = len( packages_list ) - index - 1
-            if remaining > 0: contents.append( "and more {} packages!".format( remaining ) )
+            if remaining > 0: contents.append( "and {} more package{}!".format(remaining, '' if remaining == 1 else 's' ) )
             break
 
     return ", ".join( contents )
